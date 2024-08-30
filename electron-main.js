@@ -316,6 +316,8 @@ app.whenReady().then(() => {
           }
         }, 66);
 
+        client.input.shutdown();
+
         steamworks.electronEnableSteamOverlay();
         sync('Steamworks.ok', () => true);
       };
