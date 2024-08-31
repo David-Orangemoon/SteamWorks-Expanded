@@ -15,6 +15,12 @@ const {ipcRenderer} = require('electron');
           apps: {
             isDlcInstalled: async('Steamworks.apps.isDlcInstalled'),
           },
+          input: {
+            activateActionSet: sync('Steamworks.input.activateActionSet'),
+            isDigitalActionPressed: sync('Steamworks.input.isDigitalActionPressed'),
+            getAnalogActionVector: sync('Steamworks.input.getAnalogActionVector'),
+            getControllerType: sync('Steamworks.input.getControllerType')
+          },
           leaderboard: {
             uploadScore: async('Steamworks.leaderboard.uploadScore'),
           },

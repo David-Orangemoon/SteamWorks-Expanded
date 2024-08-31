@@ -208,6 +208,7 @@ app.whenReady().then(() => {
 
         const client = steamworks.init(APP_ID);
         let currentLobby = null;
+        let controllers = [];
 
         const async = (event, callback) => ipcMain.handle(event, (e, ...args) => {
           return callback(...args);
@@ -223,11 +224,45 @@ app.whenReady().then(() => {
         async('Steamworks.achievement.activate', (achievement) => client.achievement.activate(achievement));
         async('Steamworks.achievement.clear', (achievement) => client.achievement.clear(achievement));
         sync('Steamworks.achievement.isActivated', (achievement) => client.achievement.isActivated(achievement));
+        
         sync('Steamworks.apps.isDlcInstalled', (dlc) => client.apps.isDlcInstalled(dlc));
+
+        sync('Steamworks.input.activateActionSet', (action, controllerID) => {
+          //Verify ControllerAndActions
+          if (!controllers[controllerID]) return;
+          const actionHandle = client.input.getActionSet(action);
+          //Action Handles
+          if (!actionHandle) return;
+          controllers[controllerID].activateActionSet(actionHandle);
+        });
+        sync('Steamworks.input.isDigitalActionPressed', (action, controllerID) => {
+          //Verify ControllerAndActions
+          if (!controllers[controllerID]) return;
+          const actionHandle = client.input.getDigitalAction(action);
+          //Action Handles
+          if (!actionHandle) return;
+          return controllers[controllerID].isDigitalActionPressed(actionHandle);
+        });
+        sync('Steamworks.input.getAnalogActionVector', (action, controllerID) => {
+          //Verify ControllerAndActions
+          if (!controllers[controllerID]) return;
+          const actionHandle = client.input.getAnalogAction(action);
+          //Action Handles
+          if (!actionHandle) return;
+          return controllers[controllerID].getAnalogActionVector(actionHandle);
+        });
+        sync('Steamworks.input.getControllerType', (controllerID) => {
+          //Verify ControllerAndActions
+          if (!controllers[controllerID]) return;
+
+          return controllers[controllerID].getType();
+        });
+
         sync('Steamworks.localplayer.getName', () => client.localplayer.getName());
         sync('Steamworks.localplayer.getLevel', () => client.localplayer.getLevel());
         sync('Steamworks.localplayer.getIpCountry', () => client.localplayer.getIpCountry());
         sync('Steamworks.localplayer.getSteamId', () => client.localplayer.getSteamId());
+        
         async('Steamworks.overlay.activateToWebPage', (url) => client.overlay.activateToWebPage(url));
         async('Steamworks.overlay.activateInviteDialog', (lobbyID) => client.overlay.activateInviteDialog(lobbyID));
         
@@ -314,6 +349,8 @@ app.whenReady().then(() => {
               //    mainWindow.webContents.send("steam_messageRecieved",data.toString());
               //}
           }
+
+          controllers = client.input.getControllers();
         }, 66);
 
         client.input.shutdown();
