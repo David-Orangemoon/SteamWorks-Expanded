@@ -132,6 +132,71 @@
               },
             },
           },
+          "---",
+          {
+            blockType: Scratch.BlockType.LABEL,
+            text: "Controllers"
+          },
+          {
+            blockType: Scratch.BlockType.COMMAND,
+            opcode:"setActionSet",
+            text:"set controller [ID]'s action set to [ACTIONSET]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "controllerIDs"
+              },
+              ACTIONSET: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "Set Name"
+              }
+            }
+          },
+          {
+            blockType: Scratch.BlockType.BOOLEAN,
+            opcode:"isActionPressed",
+            text:"is [ACTION] pressed on controller [ID]?",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "controllerIDs"
+              },
+              ACTION: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "Action"
+              }
+            }
+          },
+          {
+            blockType: Scratch.BlockType.REPORTER,
+            opcode:"getAxisActionPressed",
+            text:"[AXIS] position of [ACTION] on controller [ID]",
+            arguments: {
+              AXIS: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "axisXY"
+              },
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "controllerIDs"
+              },
+              ACTION: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "Action"
+              }
+            }
+          },
+          {
+            blockType: Scratch.BlockType.REPORTER,
+            opcode:"getControllerType",
+            text:"type of controller [ID]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "controllerIDs"
+              }
+            }
+          },
 
           "---",
           {
@@ -333,6 +398,42 @@
             ],
           },
 
+          controllerIDs: {
+            acceptReporters: true,
+            items: [
+              {
+                value: "1",
+                text: "1",
+              },
+              {
+                value: "2",
+                text: "2",
+              },
+              {
+                value: "3",
+                text: "3",
+              },
+              {
+                value: "4",
+                text: "4",
+              },
+            ],
+          },
+
+          axisXY: {
+            acceptReporters: true,
+            items: [
+              {
+                value: "x",
+                text: "horizontal",
+              },
+              {
+                value: "y",
+                text: "vertical",
+              },
+            ]
+          },
+
           lobbyType: {
             acceptReporters: true,
             items:[
@@ -445,6 +546,29 @@
           Scratch.openWindow(url);
         }
       }
+    }
+
+    //Controller API
+    setActionSet({ID, ACTIONSET}) {
+      if (!canUseSteamworks) return;
+      Steamworks.input.activateActionSet(Scratch.Cast.toString(ACTIONSET), Scratch.Cast.toNumber(ID));
+    }
+
+    isActionPressed({ACTION, ID}) {
+      if (!canUseSteamworks) return false;
+      return Scratch.Cast.toBoolean(Steamworks.input.isDigitalActionPressed(Scratch.Cast.toString(ACTION), Scratch.Cast.toNumber(ID)));
+    }
+
+    getAxisActionPressed({AXIS, ACTION, ID}) {
+      if (!canUseSteamworks) return 0;
+      const axis = Steamworks.input.getAnalogActionVector(Scratch.Cast.toString(ACTION), Scratch.Cast.toNumber(ID));
+      if (axis[AXIS]) return Scratch.Cast.toNumber(axis[AXIS]);
+      return 0;
+    }
+
+    getControllerType({ ID }) {
+      if (!canUseSteamworks) return "Steamworks API not available";
+      return Scratch.Cast.toString(Steamworks.input.isDigitalActionPressed(Scratch.Cast.toString(ACTION), Scratch.Cast.toNumber(ID)));
     }
 
     //Networking!
