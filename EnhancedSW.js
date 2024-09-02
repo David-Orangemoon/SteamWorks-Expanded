@@ -562,7 +562,7 @@
     getAxisActionPressed({AXIS, ACTION, ID}) {
       if (!canUseSteamworks) return 0;
       const axis = Steamworks.input.getAnalogActionVector(Scratch.Cast.toString(ACTION), Scratch.Cast.toNumber(ID));
-      if (axis[AXIS]) return Scratch.Cast.toNumber(axis[AXIS]);
+      if (axis && axis[AXIS]) return Scratch.Cast.toNumber(axis[AXIS]);
       return 0;
     }
 
