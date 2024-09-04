@@ -11,19 +11,22 @@
 
   const canUseSteamworks = typeof Steamworks !== "undefined" && Steamworks.ok();
   let peerData = "";
-  let messageData = "";
+  let messageData = {};
 
   if (canUseSteamworks) {
     Steamworks.networking.onPeerConnected = (peer) => {
-      console.log(peer);
       peerData = peer;
-
       Scratch.vm.runtime.startHats('steamworks_whenPeerConnected');
     }
 
     Steamworks.networking.onMessageRecieved = (message) => {
-      console.log(message);
-      messageData = message;
+      const parsed = JSON.parse(message);
+      if (parsed) {
+        messageData[message.MESSAGE] = message.DATA;
+      }
+      else {
+        messageData[""] = message;
+      }
       Scratch.vm.runtime.startHats('steamworks_whenMessageRecieved');
     }
   }
@@ -294,8 +297,12 @@
           {
             blockType: Scratch.BlockType.COMMAND,
             opcode:"sendGlobalMessage",
-            text:"send message with data [DATA]",
+            text:"send message [MESSAGE_NAME] with data [DATA]",
             arguments: {
+              MESSAGE_NAME: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "name"
+              },
               DATA: {
                 type: Scratch.ArgumentType.STRING,
                 defaultValue: "message"
@@ -305,8 +312,12 @@
           {
             blockType: Scratch.BlockType.COMMAND,
             opcode:"sendPrivateMessage",
-            text:"send message with data [DATA] to [PEER]",
+            text:"send message [MESSAGE_NAME] with data [DATA] to [PEER]",
             arguments: {
+              MESSAGE_NAME: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "name"
+              },
               DATA: {
                 type: Scratch.ArgumentType.STRING,
                 defaultValue: "message"
@@ -326,7 +337,13 @@
           {
             blockType: Scratch.BlockType.REPORTER,
             opcode: "getMessageData",
-            text: "message data",
+            text: "message data for [MESSAGE_NAME]",
+            arguments: {
+              MESSAGE_NAME: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "name"
+              }
+            }
           },
 
           //{
@@ -641,22 +658,22 @@
       Steamworks.currentLobby.leave();
     }
 
-    sendGlobalMessage({ DATA }) {
+    sendGlobalMessage({MESSAGE_NAME, DATA }) {
       if (!canUseSteamworks) return;
       if (!Steamworks.currentLobby.inLobby()) return;
 
-      Steamworks.networking.sendGlobalMessage(Scratch.Cast.toString(DATA));
+      Steamworks.networking.sendGlobalMessage(JSON.stringify({MESSAGE:Scratch.Cast.toString(MESSAGE_NAME), DATA:Scratch.Cast.toString(DATA)}));
     }
 
-    sendPrivateMessage({ DATA, PEER }) {
+    sendPrivateMessage({MESSAGE_NAME, DATA, PEER }) {
       if (!canUseSteamworks) return;
       if (!Steamworks.currentLobby.inLobby()) return;
 
-      Steamworks.networking.sendPrivateMessage(Scratch.Cast.toString(DATA), Scratch.Cast.toNumber(PEER));
+      Steamworks.networking.sendPrivateMessage(JSON.stringify({MESSAGE:Scratch.Cast.toString(MESSAGE_NAME), DATA:Scratch.Cast.toString(DATA)}), Scratch.Cast.toNumber(PEER));
     }
 
-    getMessageData({}) {
-      return Scratch.Cast.toString(messageData);
+    getMessageData({MESSAGE_NAME}) {
+      return Scratch.Cast.toString(messageData[MESSAGE_NAME]);
     }
 
     getSessionToken() {
